@@ -1,93 +1,249 @@
 # get_next_line
-The `get_next_line` project is a popular programming exercise in the C programming language. The aim of the project is to create a function that reads and returns a single line from a file descriptor, handling file reading efficiently and correctly regardless of the file size or content.
 
-## Features
-- Reads and returns one line at a time from a file descriptor.
-- Handles multiple file descriptors simultaneously (e.g., reading from different files or standard input at the same time).
-- Handles lines of arbitrary length, even across multiple buffer reads.
-- Memory-efficient design with dynamic allocation.
+A C function that reads a text file line by line.
 
-## Requirements
-The `get_next_line` function must conform to the following rules:
+## 📋 Table of Contents
 
-- Function prototype:  
-  ```c
-  char *get_next_line(int fd);
-  ```
-- **Return values**:
-  - Returns the next line from the file descriptor, including the newline character.
-  - Returns `NULL` when there is nothing more to read or if an error occurs.
-- Must use a buffer for efficient reading from the file descriptor, defined as `BUFFER_SIZE` during compilation.
+- [Description](#description)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Function Prototype](#function-prototype)
+- [Files Structure](#files-structure)
+- [Compilation](#compilation)
+- [Testing](#testing)
+- [Technical Details](#technical-details)
+- [Memory Management](#memory-management)
+- [Edge Cases](#edge-cases)
 
-## Installation
-To include `get_next_line` in your project, follow these steps:
+## 🎯 Description
 
-1. Clone or download the repository containing the implementation files.
-2. Add the `.c` and `.h` files into your project directory.
-3. Compile your program with the necessary files and define the `BUFFER_SIZE` during compilation:
-   ```sh
-   gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c your_program.c -o your_program
-   ```
+`get_next_line` is a function that allows you to read a file descriptor line by line. Each call to the function returns the next line from the file, including the newline character `\n` (if present). This project teaches efficient memory management, file I/O operations, and static variables in C.
 
-## Usage
-Here is a basic example of how to use `get_next_line`:
+## ✨ Features
+
+- **Line-by-line reading**: Reads one complete line at a time
+- **Multiple file descriptors**: Bonus version supports reading from multiple files simultaneously
+- **Configurable buffer size**: Adjustable `BUFFER_SIZE` for different performance needs
+- **Memory efficient**: Proper memory allocation and deallocation
+- **Edge case handling**: Handles empty files, files without newlines, and very long lines
+
+## 🚀 Installation
+
+1. Clone or download the repository
+2. Ensure you have a C compiler (gcc, clang, etc.)
+
+## 📖 Usage
+
+### Basic Implementation
 
 ```c
+#include "get_next_line.h"
 #include <fcntl.h>
 #include <stdio.h>
-#include "get_next_line.h"
 
 int main(void)
 {
-    int fd = open("example.txt", O_RDONLY);
+    int fd;
     char *line;
-
-    if (fd < 0)
+    
+    fd = open("example.txt", O_RDONLY);
+    if (fd == -1)
         return (1);
-
+        
     while ((line = get_next_line(fd)) != NULL)
     {
         printf("%s", line);
-        free(line);
+        free(line);  // Don't forget to free!
     }
+    
     close(fd);
     return (0);
 }
 ```
 
-## Files
-The project typically includes the following files:
+### Bonus Implementation (Multiple File Descriptors)
 
-- **`get_next_line.h`**: Header file with function prototypes, necessary includes, and macros.
-- **`get_next_line.c`**: Contains the main logic of the `get_next_line` function.
-- **`get_next_line_utils.c`**: Contains helper functions like memory management, string manipulation, and buffer handling.
+```c
+#include "get_next_line_bonus.h"
+#include <fcntl.h>
+#include <stdio.h>
 
-## Implementation Details
-1. **Buffer Management**:
-   - The function reads chunks of data from the file descriptor using a statically sized buffer (`BUFFER_SIZE`).
-   - The buffer content is stored and reused to minimize system calls.
+int main(void)
+{
+    int fd1, fd2;
+    char *line;
+    
+    fd1 = open("file1.txt", O_RDONLY);
+    fd2 = open("file2.txt", O_RDONLY);
+    
+    // Read alternately from both files
+    line = get_next_line(fd1);
+    printf("File1: %s", line);
+    free(line);
+    
+    line = get_next_line(fd2);
+    printf("File2: %s", line);
+    free(line);
+    
+    close(fd1);
+    close(fd2);
+    return (0);
+}
+```
 
-2. **Dynamic String Management**:
-   - Lines are dynamically allocated and grow as needed to accommodate data from the buffer.
+## 🔧 Function Prototype
 
-3. **Handling Multiple File Descriptors**:
-   - File descriptors are managed independently using static variables or arrays.
+```c
+char *get_next_line(int fd);
+```
 
-4. **Edge Cases**:
-   - Empty files or files without newlines are handled gracefully.
-   - Memory is cleaned up properly in case of errors.
+**Parameters:**
+- `fd`: File descriptor to read from
 
-## Testing
-To test the function:
+**Return Value:**
+- Returns the next line from the file (including `\n` if present)
+- Returns `NULL` when end of file is reached or an error occurs
+- The caller is responsible for freeing the returned string
 
-1. Create several text files with varying content (e.g., empty files, long lines, multiple lines).
-2. Use `get_next_line` to read each file and ensure correctness.
-3. Test edge cases, such as invalid file descriptors or reading from standard input.
+## 📁 Files Structure
 
-## Limitations
-- The function does not handle binary files well unless newline characters (`\n`) are expected.
-- Memory leaks may occur if not freed correctly after use.
+```
+get_next_line/
+├── get_next_line.c           # Main implementation
+├── get_next_line.h           # Header file
+├── get_next_line_utils.c     # Utility functions
+├── get_next_line_bonus.c     # Bonus: multiple file descriptors
+├── get_next_line_bonus.h     # Bonus header file
+├── get_next_line_utils_bonus.c # Bonus utility functions
+└── txt/                      # Test files
+    ├── empty.txt
+    ├── longline.txt
+    ├── newline.txt
+    └── test.txt
+```
 
-## Notes
-- Ensure `BUFFER_SIZE` is optimized for the expected use case.
-- Follow good coding practices like checking for memory leaks using tools like `valgrind`.
+## ⚙️ Compilation
+
+### Basic Version
+```bash
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c -o gnl_test
+```
+
+### Bonus Version
+```bash
+gcc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line_bonus.c get_next_line_utils_bonus.c -o gnl_bonus_test
+```
+
+### Different Buffer Sizes
+```bash
+# Small buffer (good for testing)
+gcc -D BUFFER_SIZE=1 get_next_line.c get_next_line_utils.c -o gnl_test
+
+# Large buffer (better performance)
+gcc -D BUFFER_SIZE=1024 get_next_line.c get_next_line_utils.c -o gnl_test
+```
+
+## 🧪 Testing
+
+The project includes several test files:
+
+- **`test.txt`**: Regular file with multiple lines
+- **`empty.txt`**: Empty file
+- **`newline.txt`**: File with only newlines
+- **`longline.txt`**: File with a very long line (tests buffer management)
+
+### Running Tests
+
+```bash
+# Test with different files
+./gnl_test < txt/test.txt
+./gnl_test < txt/empty.txt
+./gnl_test < txt/longline.txt
+
+# Test with different buffer sizes
+gcc -D BUFFER_SIZE=1 get_next_line.c get_next_line_utils.c your_test.c
+gcc -D BUFFER_SIZE=9999 get_next_line.c get_next_line_utils.c your_test.c
+```
+
+## 🔍 Technical Details
+
+### Key Components
+
+1. **Static Buffer**: Maintains state between function calls
+2. **Dynamic Memory Management**: Efficient allocation and deallocation
+3. **String Manipulation**: Custom implementations of string functions
+4. **File I/O**: Proper handling of file descriptors and read operations
+
+### Utility Functions
+
+- `ft_strlen()`: Calculate string length
+- `ft_strchr()`: Find character in string
+- `ft_strdup()`: Duplicate string
+- `ft_strndup()`: Duplicate string up to n characters
+- `ft_memcpy()`: Copy memory blocks
+- `ft_strjoin()`: Concatenate two strings
+
+### Algorithm Overview
+
+1. Read data from file descriptor in chunks of `BUFFER_SIZE`
+2. Store data in a static buffer that persists between calls
+3. Extract complete lines (up to `\n` or end of file)
+4. Return the line and update the buffer with remaining data
+5. Handle memory cleanup automatically
+
+## 🧠 Memory Management
+
+- **Automatic cleanup**: Function manages its own memory
+- **Caller responsibility**: Must free the returned line
+- **No leaks**: Proper cleanup on errors and end of file
+- **Buffer optimization**: Reuses static buffer between calls
+
+### Memory Safety Features
+
+```c
+// Automatic null pointer checks
+if (!buffer || !line)
+    return (NULL);
+
+// Proper cleanup on errors
+if (malloc_failed)
+    return (free_buffer(&buffer), NULL);
+
+// Safe string operations
+buffer[bytes_read] = '\0';  // Always null-terminate
+```
+
+## 🎯 Edge Cases
+
+The function handles various edge cases:
+
+- **Empty files**: Returns `NULL` immediately
+- **Files without final newline**: Returns the last line without `\n`
+- **Very long lines**: Dynamically grows buffer as needed
+- **Invalid file descriptors**: Returns `NULL` for negative fd
+- **Multiple consecutive newlines**: Each newline is treated as a separate line
+- **Binary files**: Handles any file type (stops at first `\n` or EOF)
+
+## 🔧 Configuration
+
+### Buffer Size
+
+The `BUFFER_SIZE` macro controls how much data is read at once:
+
+- **Small values (1-10)**: Good for testing, slower performance
+- **Medium values (42-1024)**: Balanced approach
+- **Large values (4096+)**: Better performance for large files
+
+```c
+#ifndef BUFFER_SIZE
+# define BUFFER_SIZE 1  // Default minimum size
+#endif
+```
+
+## 📝 Notes
+
+- This project follows the 42 School coding standards (Norminette)
+- No global variables are used
+- Only allowed functions: `read`, `malloc`, `free`
+- The bonus version supports up to 1024 simultaneous file descriptors
